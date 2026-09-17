@@ -1,0 +1,30 @@
+[ numero RetornaSete[] :
+    [ 7 ]
+]
+
+[ numero PassaCincoParaAFuncao [ numero Funcao[numero]] :
+    [ Funcao[5] ]
+]
+
+[ numero AplicarValorAFuncao [ numero valor | numero Funcao[numero] ] :
+    [ Funcao[valor] ]
+]
+
+[ numero ExecutarSemArgumentos [ numero FuncaoVazia[] ] :
+    [ FuncaoVazia[] ]
+]
+
+[ numero AplicarSenoAFuncao [ numero Funcao[numero OutraFuncao[numero]] ] :
+    [ Funcao[Seno] ]
+]
+
+++ [ numero Principal[] :
+    [
+        [ ¨ numero numeroBase[10] ]
+        AplicarValorAFuncao[numeroBase + 5 | Cosseno]
+        +
+        ExecutarSemArgumentos[RetornaSete]
+        +
+        AplicarSenoAFuncao[PassaCincoParaAFuncao]
+    ]
+]

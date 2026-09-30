@@ -1,9 +1,5 @@
 Package quinas;
 
-States
-    normal,
-    comentario;
-
 Helpers
     alfabeto = [0 .. 0xffff];
     digito_dec = ['0' .. '9'];
@@ -12,12 +8,19 @@ Helpers
     letra_maiuscula = ['A' .. 'Z'];
     letra = letra_minuscula | letra_maiuscula;
 
-    linha = [alfabeto - [nl + rc]]* (nl | rc);
-
     rc = 13;
     nl = 10;
+    tab = 9;
     espaco = ' ';
-    vazio = espaco | rc | nl;
+    vazio = espaco | rc | nl | tab;
+
+    linha = [alfabeto - [nl + rc]]*;
+
+    nao_traco = [alfabeto - '-'];
+    nao_traco_barra = [alfabeto - ['-' + '/']];
+    corpo_bloco = nao_traco
+                | '-' nao_traco
+                | '--' '-'* nao_traco_barra;
 
 Tokens
     tipo_numero = 'numero';
@@ -44,9 +47,7 @@ Tokens
     nao_unario = '¬';
 
     comentario_linha = '--' linha;
-    {normal -> comentario} abre_comentario = '/--';
-    {comentario -> normal} fecha_comentario = '--/';
-    {comentario} texto_comentado = alfabeto;
+    comentario_bloco = '/--' corpo_bloco* '--' '-'* '/';
 
     id_funcao = letra_maiuscula letra+;
     id_constante = letra_maiuscula letra_maiuscula+;
@@ -63,9 +64,9 @@ Tokens
     fecha_bloco = ']';
     separa_parametro = '|';
 
+    vazio_tok = vazio;
+
 Ignored Tokens
-    vazio,
+    vazio_tok,
     comentario_linha,
-    abre_comentario,
-    texto_comentado,
-    fecha_comentario;
+    comentario_bloco;

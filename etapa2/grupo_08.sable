@@ -1,0 +1,71 @@
+Package quinas;
+
+States
+    normal,
+    comentario;
+
+Helpers
+    alfabeto = [0 .. 0xffff];
+    digito_dec = ['0' .. '9'];
+    digito_bin = '0' | '1';
+    letra_minuscula = ['a' .. 'z'];
+    letra_maiuscula = ['A' .. 'Z'];
+    letra = letra_minuscula | letra_maiuscula;
+
+    linha = [alfabeto - [nl + rc]]* (nl | rc);
+
+    rc = 13;
+    nl = 10;
+    espaco = ' ';
+    vazio = espaco | rc | nl;
+
+Tokens
+    tipo_numero = 'numero';
+    tipo_booleano = 'booleano';
+
+    numero_int = digito_dec+ | '0b' digito_bin+;
+    numero_real = digito_dec+ ',' digito_dec+;
+    valor_booleano = 'V' | 'F';
+
+    soma = '+';
+    subtracao = '-';
+    multiplicacao = '.';
+    divisao_real = '/';
+    divisao_int = '//';
+    resto = '\';
+    potencia = '´';
+
+    menor = '<<';
+    maior = '>>';
+    igual = '==';
+
+    e_logico = '^';
+    ou_logico = 'v';
+    nao_unario = '¬';
+
+    comentario_linha = '--' linha;
+    {normal -> comentario} abre_comentario = '/--';
+    {comentario -> normal} fecha_comentario = '--/';
+    {comentario} texto_comentado = alfabeto;
+
+    id_funcao = letra_maiuscula letra+;
+    id_constante = letra_maiuscula letra_maiuscula+;
+    id_params = letra_minuscula letra_minuscula+;
+
+    abre_prec = '<';
+    fecha_prec = '>';
+    marca_principal = '++';
+    marca_retorno = ':';
+    guarda = '||';
+    guarda_padrao = '#';
+    atribui_guarda = '=';
+    abre_bloco = '[';
+    fecha_bloco = ']';
+    separa_parametro = '|';
+
+Ignored Tokens
+    vazio,
+    comentario_linha,
+    abre_comentario,
+    texto_comentado,
+    fecha_comentario;

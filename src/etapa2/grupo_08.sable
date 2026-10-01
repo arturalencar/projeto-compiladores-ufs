@@ -49,7 +49,7 @@ Tokens
     comentario_linha = '--' linha;
     comentario_bloco = '/--' corpo_bloco* '--' '-'* '/';
 
-    id_funcao = letra_maiuscula letra+;
+    id_funcao = letra_maiuscula letra_minuscula letra*;
     id_constante = letra_maiuscula letra_maiuscula+;
     id_parametro = letra_minuscula letra_minuscula+;
 

@@ -15,7 +15,7 @@ o operador especifico do quinas --/
 
 ++ [ numero Main []:    
     [
-      [ ¨ numero resultadoPotencia [Potencia [4 | 2]] ]
+      [ numero resultadoPotencia [Potencia [4 | 2]] ]
       
       [
         || <resultadoPotencia << -16 v resultadoPotencia >> 16> ^ ¬ <resultadoPotencia == -32 v resultadoPotencia == 32> = 1

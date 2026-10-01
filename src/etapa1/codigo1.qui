@@ -7,12 +7,12 @@
 ] ]
 
 ++ [ numero CalcularConta [ numero consumo | booleano clienteEspecial ]] : [
-    [ ¨ numero tarifa [ 0,75 ] ]
-    [ ¨ numero creditoSolar [ 24 ] ]
-    [ ¨ numero diasMes [ 0b11110 ] ]
-    [ ¨ numero imposto [ CalcularTributo [ consumo . tarifa | 0,18 ] ] ]
-    [ ¨ booleano bandeiraAtiva [ ObterBandeira[] ] ]
-    [ ¨ booleano auditoriaConcluida [ F ] ]
+    [ numero tarifa [ 0,75 ] ]
+    [ numero creditoSolar [ 24 ] ]
+    [ numero diasMes [ 0b11110 ] ]
+    [ numero imposto [ CalcularTributo [ consumo . tarifa | 0,18 ] ] ]
+    [ booleano bandeiraAtiva [ ObterBandeira[] ] ]
+    [ booleano auditoriaConcluida [ F ] ]
 
     < < -creditoSolar > + < consumo . tarifa > > +
     < < consumo / diasMes > . 2 > - 

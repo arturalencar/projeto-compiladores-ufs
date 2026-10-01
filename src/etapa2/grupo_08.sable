@@ -51,7 +51,7 @@ Tokens
 
     id_funcao = letra_maiuscula letra+;
     id_constante = letra_maiuscula letra_maiuscula+;
-    id_params = letra_minuscula letra_minuscula+;
+    id_parametro = letra_minuscula letra_minuscula+;
 
     abre_prec = '<';
     fecha_prec = '>';

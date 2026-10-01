@@ -3,7 +3,6 @@ package quinas;
 import quinas.lexer.*;
 import quinas.node.*;
 import java.io.*;
-import java.time.Clock;
 
 public class Main {
 
@@ -21,7 +20,7 @@ public class Main {
 
             while (!((token = lexer.next()) instanceof EOF)) {
                 System.out.println(token.getClass());
-                System.out.println(" ( " + token.toString() + " ) ");
+                System.out.println(" ( " + token + " ) ");
             }
         }
         catch (Exception e) {

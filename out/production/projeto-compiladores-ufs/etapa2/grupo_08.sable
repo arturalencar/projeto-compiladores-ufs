@@ -1,0 +1,72 @@
+Package quinas;
+
+Helpers
+    alfabeto = [0 .. 0xffff];
+    digito_dec = ['0' .. '9'];
+    digito_bin = '0' | '1';
+    letra_minuscula = ['a' .. 'z'];
+    letra_maiuscula = ['A' .. 'Z'];
+    letra = letra_minuscula | letra_maiuscula;
+
+    rc = 13;
+    nl = 10;
+    tab = 9;
+    espaco = ' ';
+    vazio = espaco | rc | nl | tab;
+
+    linha = [alfabeto - [nl + rc]]*;
+
+    nao_traco = [alfabeto - '-'];
+    nao_traco_barra = [alfabeto - ['-' + '/']];
+    corpo_bloco = nao_traco
+                | '-' nao_traco
+                | '--' '-'* nao_traco_barra;
+
+Tokens
+    tipo_numero = 'numero';
+    tipo_booleano = 'booleano';
+
+    numero_int = digito_dec+ | '0b' digito_bin+;
+    numero_real = digito_dec+ ',' digito_dec+;
+    valor_booleano = 'V' | 'F';
+
+    soma = '+';
+    subtracao = '-';
+    multiplicacao = '.';
+    divisao_real = '/';
+    divisao_int = '//';
+    resto = '\';
+    potencia = '´';
+
+    menor = '<<';
+    maior = '>>';
+    igual = '==';
+
+    e_logico = '^';
+    ou_logico = 'v';
+    nao_unario = '¬';
+
+    comentario_linha = '--' linha;
+    comentario_bloco = '/--' corpo_bloco* '--' '/';
+
+    id_constante = letra_maiuscula letra_maiuscula+;
+    id_funcao = letra_maiuscula letra+;
+    id = letra letra+;
+
+    abre_prec = '<';
+    fecha_prec = '>';
+    marca_principal = '++';
+    marca_retorno = ':';
+    guarda = '||';
+    guarda_padrao = '#';
+    atribui_guarda = '=';
+    abre_bloco = '[';
+    fecha_bloco = ']';
+    separa_parametro = '|';
+
+    vazio_tok = vazio;
+
+Ignored Tokens
+    vazio_tok,
+    comentario_linha,
+    comentario_bloco;

@@ -18,13 +18,33 @@ A segunda fase do projeto consiste na implementação do **Analisador Léxico (L
     - **Tipos de dados**: `numero` e `booleano`;
     - **Literais**: Números inteiros (decimais e binários), números reais (utilizando vírgula `,`) e valores booleanos (`V` e `F`);
     - **Operadores**: Aritméticos (`+`, `-`, `.`, `/`, `//`, `\`, `´`), relacionais (`<<`, `>>`, `==`) e lógicos (`^`, `v`, `¬`);
-    - **Identificadores**: Regras léxicas específicas para funções (`id_funcao`), constantes (`id_constante`) e parâmetros (`id_parametro`);
+    - **Identificadores**: Regras léxicas específicas para funções (`id_funcao`), constantes (`id_constante`) e parâmetros (`id` genérico; a regra de minúsculas para parâmetros primitivos é semântica);
     - **Delimitadores e pontuações**: Precedência (`<`, `>`), blocos (`[`, `]`), guardas (`||`, `#`, `=`), separadores (`|`), declaração de retorno (`:`) e ponto de entrada (`++`);
   - **Ignored Tokens**: Descarte automático de caracteres em branco/espaçamento (`vazio_tok`), comentários de linha (`--`) e comentários de bloco (`/-- ... --/`).
 
 - **Código Gerado e Testes (`src/quinas/`)**:
   - Pacotes gerados pelo SableCC (`quinas.lexer`, `quinas.node`, `quinas.analysis`);
   - **`Main.java`**: Classe de teste responsável por instanciar o `Lexer` a partir de um arquivo-fonte da linguagem QUINAS (como os exemplos de `src/etapa1/`) através de um `PushbackReader`, iterando sobre o fluxo de tokens e imprimindo na saída padrão a classe do token e o lexema correspondente até o fim do arquivo (`EOF`).
+
+### Etapa 3
+
+O analisador sintático está em `src/etapa3/grupo_08.sable`. A gramática inclui precedência de operadores, guardas, constantes e assinaturas de funções. `Main.java` imprime a árvore sintática concreta após uma análise bem-sucedida; erros incluem a posição informada pelo SableCC e encerram a execução com código 1.
+
+A árvore é exibida em formato compacto por padrão, com conectores entre os nós e sem as produções intermediárias de precedência. Para mostrar todos os nós da árvore concreta, passe `--completa` antes do caminho do arquivo, por exemplo: `etapa3.Main --completa src/etapa3/exemplo.qui`.
+
+Com JDK e SableCC 3.7, execute na raiz do projeto (PowerShell), ajustando o caminho do JAR:
+
+```powershell
+New-Item -ItemType Directory -Force out/etapa3/gerado, out/etapa3/classes | Out-Null
+java -jar "caminho/para/sablecc.jar" -d out/etapa3/gerado src/etapa3/grupo_08.sable
+$fontes = @((Get-ChildItem out/etapa3/gerado -Recurse -Filter *.java).FullName) + @((Get-ChildItem src/etapa3 -Filter *.java).FullName)
+javac -encoding UTF-8 -d out/etapa3/classes $fontes
+java -cp "out/etapa3/classes;out/etapa3/gerado" etapa3.Main src/etapa3/exemplo.qui
+```
+
+A geração fica separada dos arquivos da etapa 2; o classpath inclui as tabelas `.dat` geradas pelo SableCC. As entradas `.qui` devem estar em UTF-8.
+
+O exemplo da etapa 3 segue a gramática da v2: constantes têm um único nome em maiúsculas (`[ numero TOTAL [10] ]`), conforme esclarecido para esta implementação. Guardas e blocos de expressão possuem seus próprios colchetes, além dos colchetes do corpo da função. Os exemplos originais da etapa 1 foram preservados e contêm divergências em relação a essas regras.
 
 ---
 

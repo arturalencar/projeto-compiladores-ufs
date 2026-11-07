@@ -1,0 +1,162 @@
+Package quinas;
+
+Helpers
+    alfabeto = [0 .. 0xffff];
+    digito_dec = ['0' .. '9'];
+    digito_bin = '0' | '1';
+    letra_minuscula = ['a' .. 'z'];
+    letra_maiuscula = ['A' .. 'Z'];
+    letra = letra_minuscula | letra_maiuscula;
+
+    rc = 13;
+    nl = 10;
+    vazio = ' ' | rc | nl | 9;
+    linha = [alfabeto - [nl + rc]]*;
+    nao_traco = [alfabeto - '-'];
+    nao_traco_barra = [alfabeto - ['-' + '/']];
+    corpo_bloco = nao_traco
+                | '-' nao_traco
+                | '--' '-'* nao_traco_barra;
+
+Tokens
+    tipo_numero = 'numero';
+    tipo_booleano = 'booleano';
+
+    numero_int = digito_dec+ | '0b' digito_bin+;
+    numero_real = digito_dec+ ',' digito_dec+;
+    valor_booleano = 'V' | 'F';
+
+    soma = '+';
+    subtracao = '-';
+    multiplicacao = '.';
+    divisao_real = '/';
+    divisao_int = '//';
+    resto = '\';
+    potencia = '´';
+
+    menor = '<<';
+    maior = '>>';
+    igual = '==';
+    e_logico = '^';
+    ou_logico = 'v';
+    nao_unario = '¬';
+
+    comentario_linha = '--' linha;
+    comentario_bloco = '/--' corpo_bloco* '--' '/';
+    comentario_incompleto = '/--' corpo_bloco* '-'*;
+
+    id_constante = letra_maiuscula letra_maiuscula+;
+    id_funcao = letra_maiuscula letra+;
+    id = letra letra+;
+
+    abre_prec = '<';
+    fecha_prec = '>';
+    marca_principal = '++';
+    marca_retorno = ':';
+    guarda = '||';
+    guarda_padrao = '#';
+    atribui_guarda = '=';
+    abre_bloco = '[';
+    fecha_bloco = ']';
+    separa_parametro = '|';
+    vazio_tok = vazio+;
+
+Ignored Tokens
+    vazio_tok,
+    comentario_linha,
+    comentario_bloco;
+
+Productions
+    programa = dec_funcao+;
+
+    dec_funcao = marca_principal?
+        [abre_funcao]:abre_bloco tipo nome_funcao
+        [abre_parametros]:abre_bloco lista_parametros? [fecha_parametros]:fecha_bloco
+        marca_retorno [abre_corpo]:abre_bloco exp [fecha_corpo]:fecha_bloco
+        [fecha_funcao]:fecha_bloco;
+
+    tipo =
+        {numero} tipo_numero |
+        {booleano} tipo_booleano;
+
+    nome_funcao =
+        id_funcao;
+
+    lista_parametros = parametro parametro_adicional*;
+    parametro_adicional = separa_parametro parametro;
+    parametro =
+        {valor} tipo id |
+        {funcao} assinatura;
+
+    assinatura = tipo nome_funcao abre_bloco parametros_assinatura? fecha_bloco;
+    parametros_assinatura = parametro_assinatura assinatura_adicional*;
+    assinatura_adicional = separa_parametro parametro_assinatura;
+    parametro_assinatura =
+        {valor} tipo |
+        {funcao} assinatura;
+
+    exp = exp_ou;
+    exp_ou =
+        {base} exp_e |
+        {ou} exp_ou ou_logico exp_e;
+
+    exp_e =
+        {base} exp_igualdade |
+        {e} exp_e e_logico exp_igualdade;
+
+    exp_igualdade =
+        {base} exp_relacional |
+        {igual} exp_igualdade igual exp_relacional;
+
+    exp_relacional =
+        {base} exp_soma |
+        {menor} exp_relacional menor exp_soma |
+        {maior} exp_relacional maior exp_soma;
+
+    exp_soma =
+        {base} exp_produto |
+        {soma} exp_soma soma exp_produto |
+        {subtracao} exp_soma subtracao exp_produto;
+
+    exp_produto =
+        {base} exp_unaria |
+        {multiplicacao} exp_produto multiplicacao exp_unaria |
+        {divisao_real} exp_produto divisao_real exp_unaria |
+        {divisao_int} exp_produto divisao_int exp_unaria |
+        {resto} exp_produto resto exp_unaria;
+
+    exp_unaria =
+        {base} exp_potencia |
+        {negativa} subtracao exp_unaria |
+        {nao} nao_unario exp_unaria;
+
+    exp_potencia =
+        {base} exp_primaria |
+        {potencia} exp_primaria potencia exp_unaria;
+
+    exp_primaria =
+        {inteiro} numero_int |
+        {real} numero_real |
+        {booleano} valor_booleano |
+        {identificador} id |
+        {constante} id_constante |
+        {bloco} bloco_exp |
+        {chamada} chamada |
+        {guarda} expressao_guarda |
+        {agrupada} abre_prec exp fecha_prec;
+
+    expressao_guarda = abre_bloco ramo_guarda+ ramo_padrao fecha_bloco;
+    ramo_guarda = guarda [condicao]:exp atribui_guarda [valor]:exp;
+    ramo_padrao = guarda guarda_padrao atribui_guarda exp;
+
+    bloco_exp = abre_bloco dec_cons+ exp fecha_bloco;
+    dec_cons = [abre_declaracao]:abre_bloco tipo id_constante
+        [abre_valor]:abre_bloco exp [fecha_valor]:fecha_bloco
+        [fecha_declaracao]:fecha_bloco;
+
+    chamada = nome_funcao abre_bloco lista_args? fecha_bloco;
+    lista_args = arg argumento_adicional*;
+    argumento_adicional = separa_parametro arg;
+    arg =
+        {valor} exp |
+        {funcao} id_funcao;

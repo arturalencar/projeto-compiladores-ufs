@@ -8,7 +8,7 @@ public class Main {
 
     public static void main(String[] args) {
         try {
-            String arquivo = "src/etapa1/codigo1.qui";
+            String arquivo = "src/etapa3/exemplo.qui";
 
             Lexer lexer = new Lexer(
                     new PushbackReader(

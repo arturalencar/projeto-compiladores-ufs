@@ -42,12 +42,11 @@ Tokens
     nao_unario = '¬';
 
     comentario_linha = '--' linha;
-    comentario_bloco = '/--' corpo_bloco* '--' '/';
-    comentario_incompleto = '/--' corpo_bloco* '-'*;
+    comentario_bloco = '/--' corpo_bloco* '--' '-'* '/';
 
     id_constante = letra_maiuscula letra_maiuscula+;
     id_funcao = letra_maiuscula letra+;
-    id = letra letra+;
+    id_parametro = letra_minuscula letra_minuscula+;
 
     abre_prec = '<';
     fecha_prec = '>';
@@ -85,7 +84,7 @@ Productions
     lista_parametros = parametro parametro_adicional*;
     parametro_adicional = separa_parametro parametro;
     parametro =
-        {valor} tipo id |
+        {valor} tipo id_parametro |
         {funcao} assinatura;
 
     assinatura = tipo nome_funcao abre_bloco parametros_assinatura? fecha_bloco;
@@ -138,7 +137,7 @@ Productions
         {inteiro} numero_int |
         {real} numero_real |
         {booleano} valor_booleano |
-        {identificador} id |
+        {identificador} id_parametro |
         {constante} id_constante |
         {bloco} bloco_exp |
         {chamada} chamada |

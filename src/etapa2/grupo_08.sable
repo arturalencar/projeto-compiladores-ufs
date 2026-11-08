@@ -47,11 +47,11 @@ Tokens
     nao_unario = '¬';
 
     comentario_linha = '--' linha;
-    comentario_bloco = '/--' corpo_bloco* '--' '/';
+    comentario_bloco = '/--' corpo_bloco* '--' '-'* '/';
 
     id_constante = letra_maiuscula letra_maiuscula+;
     id_funcao = letra_maiuscula letra+;
-    id = letra letra+;
+    id_parametro = letra_minuscula letra_minuscula+;
 
     abre_prec = '<';
     fecha_prec = '>';

@@ -7,9 +7,13 @@ import java.io.*;
 public class Main {
 
     public static void main(String[] args) {
-        try {
-            String arquivo = "src/etapa3/exemplo.qui";
+        if (args.length != 1) {
+            System.err.println("Uso: java quinas.Main <arquivo.qui>");
+            System.exit(2);
+        }
 
+        try {
+            String arquivo = args[0];
             Lexer lexer = new Lexer(
                     new PushbackReader(
                             new FileReader(arquivo), 1024
@@ -24,7 +28,8 @@ public class Main {
             }
         }
         catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
+            System.exit(1);
         }
     }
 }

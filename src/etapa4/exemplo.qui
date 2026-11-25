@@ -1,0 +1,25 @@
+[ numero Potencia [numero base | numero expoente] :
+    [
+        [
+            || expoente == 0 = 1
+            || # = base . Potencia[base | expoente - 1]
+        ]
+    ]
+]
+
+[ numero Aplicar [numero valor | numero Funcao[numero]] :
+    [ Funcao[valor] ]
+]
+
+++ [ numero Principal[] :
+    [
+        [
+            [ numero BASE [0b100] ]
+            [ numero RESULTADO [Potencia[BASE | 2]] ]
+            [
+                || <RESULTADO >> 10> ^ ¬ F = Aplicar[RESULTADO | Seno]
+                || # = 0,5
+            ]
+        ]
+    ]
+]

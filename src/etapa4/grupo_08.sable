@@ -1,0 +1,371 @@
+Package quinas;
+
+Helpers
+    alfabeto = [0 .. 0xffff];
+    digito_dec = ['0' .. '9'];
+    digito_bin = '0' | '1';
+    letra_minuscula = ['a' .. 'z'];
+    letra_maiuscula = ['A' .. 'Z'];
+    letra = letra_minuscula | letra_maiuscula;
+
+    rc = 13;
+    nl = 10;
+    vazio = ' ' | rc | nl | 9;
+    linha = [alfabeto - [nl + rc]]*;
+    nao_traco = [alfabeto - '-'];
+    nao_traco_barra = [alfabeto - ['-' + '/']];
+    corpo_bloco = nao_traco
+                | '-' nao_traco
+                | '--' '-'* nao_traco_barra;
+
+Tokens
+    tipo_numero = 'numero';
+    tipo_booleano = 'booleano';
+
+    numero_int = digito_dec+ | '0b' digito_bin+;
+    numero_real = digito_dec+ ',' digito_dec+;
+    valor_booleano = 'V' | 'F';
+
+    soma = '+';
+    subtracao = '-';
+    multiplicacao = '.';
+    divisao_real = '/';
+    divisao_int = '//';
+    resto = '\';
+    potencia = '´';
+
+    menor = '<<';
+    maior = '>>';
+    igual = '==';
+    e_logico = '^';
+    ou_logico = 'v';
+    nao_unario = '¬';
+
+    comentario_linha = '--' linha;
+    comentario_bloco = '/--' corpo_bloco* '--' '-'* '/';
+
+    id_constante = letra_maiuscula letra_maiuscula+;
+    id_funcao = letra_maiuscula letra+;
+    id_parametro = letra_minuscula letra_minuscula+;
+
+    abre_prec = '<';
+    fecha_prec = '>';
+    marca_principal = '++';
+    marca_retorno = ':';
+    guarda = '||';
+    guarda_padrao = '#';
+    atribui_guarda = '=';
+    abre_bloco = '[';
+    fecha_bloco = ']';
+    separa_parametro = '|';
+    vazio_tok = vazio+;
+
+Ignored Tokens
+    vazio_tok,
+    comentario_linha,
+    comentario_bloco;
+
+Productions
+    programa {-> a_programa} =
+        [funcoes]:dec_funcao+
+        {-> New a_programa.programa([funcoes.a_funcao])};
+
+    dec_funcao {-> a_funcao} =
+        {principal}
+            marca_principal
+            [abre_cabecalho]:abre_bloco [retorno]:tipo [nome]:id_funcao
+            [abre_parametros]:abre_bloco [parametros]:lista_parametros [fecha_parametros]:fecha_bloco
+            marca_retorno
+            [abre_corpo]:abre_bloco [corpo]:exp [fecha_corpo]:fecha_bloco
+            [fecha_funcao]:fecha_bloco
+            {-> New a_funcao.principal(retorno.a_tipo, nome,
+                                      [parametros.a_parametro], corpo.a_exp)}
+    |
+        {comum}
+            [abre_cabecalho]:abre_bloco [retorno]:tipo [nome]:id_funcao
+            [abre_parametros]:abre_bloco [parametros]:lista_parametros [fecha_parametros]:fecha_bloco
+            marca_retorno
+            [abre_corpo]:abre_bloco [corpo]:exp [fecha_corpo]:fecha_bloco
+            [fecha_funcao]:fecha_bloco
+            {-> New a_funcao.comum(retorno.a_tipo, nome,
+                                  [parametros.a_parametro], corpo.a_exp)};
+
+    tipo {-> a_tipo} =
+        {numero} tipo_numero
+            {-> New a_tipo.numero(tipo_numero)}
+      | {booleano} tipo_booleano
+            {-> New a_tipo.booleano(tipo_booleano)};
+
+    lista_parametros {-> a_parametro*} =
+        {vazia}
+            {-> []}
+      | {lista}
+            [primeiro]:parametro [adicionais]:parametro_adicional*
+            {-> [primeiro.a_parametro, adicionais.a_parametro]};
+
+    parametro_adicional {-> a_parametro} =
+        separa_parametro parametro
+        {-> parametro.a_parametro};
+
+    parametro {-> a_parametro} =
+        {valor}
+            [tipo]:tipo [nome]:id_parametro
+            {-> New a_parametro.valor(tipo.a_tipo, nome)}
+      | {funcao}
+            assinatura
+            {-> New a_parametro.funcao(assinatura.a_assinatura)};
+
+    assinatura {-> a_assinatura} =
+        [retorno]:tipo [nome]:id_funcao
+        abre_bloco [parametros]:parametros_assinatura fecha_bloco
+        {-> New a_assinatura.assinatura(retorno.a_tipo, nome,
+                                       [parametros.a_parametro_assinatura])};
+
+    parametros_assinatura {-> a_parametro_assinatura*} =
+        {vazia}
+            {-> []}
+      | {lista}
+            [primeiro]:parametro_assinatura [adicionais]:assinatura_adicional*
+            {-> [primeiro.a_parametro_assinatura, adicionais.a_parametro_assinatura]};
+
+    assinatura_adicional {-> a_parametro_assinatura} =
+        separa_parametro parametro_assinatura
+        {-> parametro_assinatura.a_parametro_assinatura};
+
+    parametro_assinatura {-> a_parametro_assinatura} =
+        {valor}
+            tipo
+            {-> New a_parametro_assinatura.valor(tipo.a_tipo)}
+      | {funcao}
+            assinatura
+            {-> New a_parametro_assinatura.funcao(assinatura.a_assinatura)};
+
+    exp {-> a_exp} =
+        exp_ou
+        {-> exp_ou.a_exp};
+
+    exp_ou {-> a_exp} =
+        {base}
+            exp_e
+            {-> exp_e.a_exp}
+      | {ou}
+            [esquerda]:exp_ou ou_logico [direita]:exp_e
+            {-> New a_exp.ou(esquerda.a_exp, direita.a_exp)};
+
+    exp_e {-> a_exp} =
+        {base}
+            exp_igualdade
+            {-> exp_igualdade.a_exp}
+      | {e}
+            [esquerda]:exp_e e_logico [direita]:exp_igualdade
+            {-> New a_exp.e(esquerda.a_exp, direita.a_exp)};
+
+    exp_igualdade {-> a_exp} =
+        {base}
+            exp_relacional
+            {-> exp_relacional.a_exp}
+      | {igual}
+            [esquerda]:exp_igualdade igual [direita]:exp_relacional
+            {-> New a_exp.igual(esquerda.a_exp, direita.a_exp)};
+
+    exp_relacional {-> a_exp} =
+        {base}
+            exp_soma
+            {-> exp_soma.a_exp}
+      | {menor}
+            [esquerda]:exp_relacional menor [direita]:exp_soma
+            {-> New a_exp.menor(esquerda.a_exp, direita.a_exp)}
+      | {maior}
+            [esquerda]:exp_relacional maior [direita]:exp_soma
+            {-> New a_exp.maior(esquerda.a_exp, direita.a_exp)};
+
+    exp_soma {-> a_exp} =
+        {base}
+            exp_produto
+            {-> exp_produto.a_exp}
+      | {soma}
+            [esquerda]:exp_soma soma [direita]:exp_produto
+            {-> New a_exp.soma(esquerda.a_exp, direita.a_exp)}
+      | {subtracao}
+            [esquerda]:exp_soma subtracao [direita]:exp_produto
+            {-> New a_exp.subtracao(esquerda.a_exp, direita.a_exp)};
+
+    exp_produto {-> a_exp} =
+        {base}
+            exp_unaria
+            {-> exp_unaria.a_exp}
+      | {multiplicacao}
+            [esquerda]:exp_produto multiplicacao [direita]:exp_unaria
+            {-> New a_exp.multiplicacao(esquerda.a_exp, direita.a_exp)}
+      | {divisao_real}
+            [esquerda]:exp_produto divisao_real [direita]:exp_unaria
+            {-> New a_exp.divisao_real(esquerda.a_exp, direita.a_exp)}
+      | {divisao_int}
+            [esquerda]:exp_produto divisao_int [direita]:exp_unaria
+            {-> New a_exp.divisao_int(esquerda.a_exp, direita.a_exp)}
+      | {resto}
+            [esquerda]:exp_produto resto [direita]:exp_unaria
+            {-> New a_exp.resto(esquerda.a_exp, direita.a_exp)};
+
+    exp_unaria {-> a_exp} =
+        {base}
+            exp_potencia
+            {-> exp_potencia.a_exp}
+      | {negativa}
+            subtracao [operando]:exp_unaria
+            {-> New a_exp.negativa(operando.a_exp)}
+      | {nao}
+            nao_unario [operando]:exp_unaria
+            {-> New a_exp.nao(operando.a_exp)};
+
+    exp_potencia {-> a_exp} =
+        {base}
+            exp_primaria
+            {-> exp_primaria.a_exp}
+      | {potencia}
+            [esquerda]:exp_primaria potencia [direita]:exp_unaria
+            {-> New a_exp.potencia(esquerda.a_exp, direita.a_exp)};
+
+    exp_primaria {-> a_exp} =
+        {inteiro}
+            numero_int
+            {-> New a_exp.inteiro(numero_int)}
+      | {real}
+            numero_real
+            {-> New a_exp.real(numero_real)}
+      | {booleano}
+            valor_booleano
+            {-> New a_exp.booleano(valor_booleano)}
+      | {identificador}
+            id_parametro
+            {-> New a_exp.identificador(id_parametro)}
+      | {constante}
+            id_constante
+            {-> New a_exp.constante(id_constante)}
+      | {bloco}
+            bloco_exp
+            {-> New a_exp.bloco(bloco_exp.a_bloco)}
+      | {chamada}
+            chamada
+            {-> New a_exp.chamada(chamada.a_chamada)}
+      | {guarda}
+            expressao_guarda
+            {-> New a_exp.guarda(expressao_guarda.a_guarda)}
+      | {agrupada}
+            abre_prec exp fecha_prec
+            {-> exp.a_exp};
+
+    expressao_guarda {-> a_guarda} =
+        abre_bloco [ramos]:ramo_guarda+ [padrao]:ramo_padrao fecha_bloco
+        {-> New a_guarda.guarda([ramos.a_ramo], padrao.a_ramo)};
+
+    ramo_guarda {-> a_ramo} =
+        guarda [condicao]:exp atribui_guarda [valor]:exp
+        {-> New a_ramo.condicional(condicao.a_exp, valor.a_exp)};
+
+    ramo_padrao {-> a_ramo} =
+        guarda guarda_padrao atribui_guarda [valor]:exp
+        {-> New a_ramo.padrao(valor.a_exp)};
+
+    bloco_exp {-> a_bloco} =
+        abre_bloco [declaracoes]:dec_cons+ [resultado]:exp fecha_bloco
+        {-> New a_bloco.bloco([declaracoes.a_dec_cons], resultado.a_exp)};
+
+    dec_cons {-> a_dec_cons} =
+        [abre_declaracao]:abre_bloco [tipo]:tipo [nome]:id_constante
+        [abre_valor]:abre_bloco [valor]:exp [fecha_valor]:fecha_bloco
+        [fecha_declaracao]:fecha_bloco
+        {-> New a_dec_cons.declaracao(tipo.a_tipo, nome, valor.a_exp)};
+
+    chamada {-> a_chamada} =
+        [nome]:id_funcao abre_bloco [argumentos]:lista_args fecha_bloco
+        {-> New a_chamada.chamada(nome, [argumentos.a_arg])};
+
+    lista_args {-> a_arg*} =
+        {vazia}
+            {-> []}
+      | {lista}
+            [primeiro]:arg [adicionais]:argumento_adicional*
+            {-> [primeiro.a_arg, adicionais.a_arg]};
+
+    argumento_adicional {-> a_arg} =
+        separa_parametro arg
+        {-> arg.a_arg};
+
+    arg {-> a_arg} =
+        {valor}
+            exp
+            {-> New a_arg.valor(exp.a_exp)}
+      | {funcao}
+            id_funcao
+            {-> New a_arg.funcao(id_funcao)};
+
+Abstract Syntax Tree
+    a_programa =
+        {programa} [funcoes]:a_funcao*;
+
+    a_funcao =
+        {principal} [retorno]:a_tipo [nome]:id_funcao
+                   [parametros]:a_parametro* [corpo]:a_exp
+      | {comum} [retorno]:a_tipo [nome]:id_funcao
+                [parametros]:a_parametro* [corpo]:a_exp;
+
+    a_tipo =
+        {numero} tipo_numero
+      | {booleano} tipo_booleano;
+
+    a_parametro =
+        {valor} [tipo]:a_tipo [nome]:id_parametro
+      | {funcao} [assinatura]:a_assinatura;
+
+    a_assinatura =
+        {assinatura} [retorno]:a_tipo [nome]:id_funcao
+                     [parametros]:a_parametro_assinatura*;
+
+    a_parametro_assinatura =
+        {valor} a_tipo
+      | {funcao} [assinatura]:a_assinatura;
+
+    a_exp =
+        {ou} [esquerda]:a_exp [direita]:a_exp
+      | {e} [esquerda]:a_exp [direita]:a_exp
+      | {igual} [esquerda]:a_exp [direita]:a_exp
+      | {menor} [esquerda]:a_exp [direita]:a_exp
+      | {maior} [esquerda]:a_exp [direita]:a_exp
+      | {soma} [esquerda]:a_exp [direita]:a_exp
+      | {subtracao} [esquerda]:a_exp [direita]:a_exp
+      | {multiplicacao} [esquerda]:a_exp [direita]:a_exp
+      | {divisao_real} [esquerda]:a_exp [direita]:a_exp
+      | {divisao_int} [esquerda]:a_exp [direita]:a_exp
+      | {resto} [esquerda]:a_exp [direita]:a_exp
+      | {potencia} [esquerda]:a_exp [direita]:a_exp
+      | {negativa} [operando]:a_exp
+      | {nao} [operando]:a_exp
+      | {inteiro} numero_int
+      | {real} numero_real
+      | {booleano} valor_booleano
+      | {identificador} id_parametro
+      | {constante} id_constante
+      | {bloco} [bloco]:a_bloco
+      | {chamada} [chamada]:a_chamada
+      | {guarda} [guarda]:a_guarda;
+
+    a_guarda =
+        {guarda} [ramos]:a_ramo* [padrao]:a_ramo;
+
+    a_ramo =
+        {condicional} [condicao]:a_exp [valor]:a_exp
+      | {padrao} [valor]:a_exp;
+
+    a_bloco =
+        {bloco} [declaracoes]:a_dec_cons* [resultado]:a_exp;
+
+    a_dec_cons =
+        {declaracao} [tipo]:a_tipo [nome]:id_constante [valor]:a_exp;
+
+    a_chamada =
+        {chamada} [nome]:id_funcao [argumentos]:a_arg*;
+
+    a_arg =
+        {valor} [expressao]:a_exp
+      | {funcao} id_funcao;
